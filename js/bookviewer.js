@@ -14,10 +14,13 @@ export class BookViewer {
         this.liburuKopuru = document.querySelector("#liburuKopuru");
 
         this.initButtons();
-        this.updateView(); 
+        //this.updateView(); 
         // Test the data
         console.log(this.data);
+
+
     }
+
 
     initButtons() {
         // aurrera, atzera eta bilatu botoiak hasieratu
@@ -68,15 +71,16 @@ export class BookViewer {
         const isbn = this.isbn.value.trim();  
         if (isbn) {
             this.extractBookData(isbn).then(book => {
-                if (book) {
+                if (!this.data.some(b => b.isbn === book.isbn)) {
                     // extractBookData eta addBookToData funtzioak erabili, indizea berria lortuz
-                    this.index = this.addBookToData(book, this.data);
-                    // updateView funtzioa erabili, liburu berria bistaratzeko
-                    this.updateView();
+                    this.index = this.addBookToData(book, this.data);              
+                   
                 }
+                 // updateView funtzioa erabili, liburu berria bistaratzeko
+                 this.updateView();
             });
         } else {
-            console.warn("Sartu ISBN bat.");
+            console.log("Sartu ISBN bat.");
         }
         
     };
@@ -84,6 +88,8 @@ export class BookViewer {
     updateView() {
         // liburuaren datu guztiak bistaratu
         if (this.data.length > 0 && this.data[this.index]) {
+
+            
             const currentBook = this.data[this.index];
             console.log(currentBook);
             console.log(this.index);
@@ -109,12 +115,14 @@ export class BookViewer {
         // Hurrengo indizea lortu eta updateView funtzioa erabili bistaratzeko
         if (this.index < this.data.length - 1) {
             this.index++;
-            this.updateView();
+            this.isbn.value = this.data[this.index].isbn;
             //Programa arrayaren amaiera iristen bada index hasierara itzuli
         }else if(this.index == this.data.length - 1){
             this.index = 0;
-            this.updateView();
         }
+        //Balioak eguneratu eta horiek pantailaratu 
+        this.handleSearchData();
+
     }
 
     prevBook() {
@@ -127,6 +135,8 @@ export class BookViewer {
             this.index = this.data.length - 1;
             
         }
-         this.updateView();
+        this.isbn.value = this.data[this.index].isbn;
+        //Balioak eguneratu eta horiek pantailaratu 
+        this.handleSearchData();
     }
 }
