@@ -14,8 +14,6 @@ export class BookViewer {
     this.liburuKopuru = document.querySelector("#liburuKopuru");
     this.isbnValue = this.isbn.value.trim();
 
-    
-
     this.initButtons();
     // Metodoa komentatu lehenengo iterazioan erabiltzen ez baita.
     this.updateView();
@@ -31,17 +29,15 @@ export class BookViewer {
     // eta handleSearchData funtzioa exekutatu
     aurrera.onclick = () => this.nextBook();
     atzera.onclick = () => this.prevBook();
-    bilatu.onclick = () => {
-      this.handleSearchData();
-    };
+    bilatu.onclick = () => this.handleSearchData();
   }
 
   extractBookData = (isbn) => {
+    console.log("extractBookData");
     // json objektu egoki bat bueltatu, zure webgunean erabili ahal izateko
     return fetch(`${this.search_base}${isbn}`)
       .then((resp) => resp.json())
       .then((bookData) => {
-        console.log("extractBookData");
         console.log(bookData);
 
         if (bookData.docs && bookData.docs.length > 0) {
@@ -53,7 +49,7 @@ export class BookViewer {
             isbn: isbn,
             filename: book.cover_i
               ? `${book.cover_i}-M.jpg`
-              : "default-cover.jpg"
+              : "default-cover.jpg",
           };
         } else {
           console.warn("No book data found for the given ISBN.");
@@ -67,17 +63,18 @@ export class BookViewer {
   };
 
   addBookToData = (book, data) => {
+    console.log("addBookToData");
     // data array-ean sartu liburua, eta liburu berriaren posizioa bueltatu
     if (!book) return -1;
     data.push(book);
     return data.length - 1;
   };
 
-  
   handleSearchData = () => {
+    console.log("handleSearchData");
     // lortu liburua data objektutik
     const isbn = this.isbn.value.trim();
-    
+
     if (isbn) {
       this.extractBookData(isbn).then((book) => {
         if (book) {
@@ -88,12 +85,13 @@ export class BookViewer {
         }
       });
     } else {
-      console.log("Sartu ISBN bat.");
+      console.warn("Sartu ISBN bat.");
     }
   };
 
   updateView() {
-     // liburuaren datu guztiak bistaratu
+    console.log("updateView");
+    // liburuaren datu guztiak bistaratu
 
     const currentBook = this.data[this.index];
 
@@ -127,13 +125,13 @@ export class BookViewer {
     // Aurreko indizea lortu eta updateView funtzioa erabili bistaratzeko
     if (this.index > 0) {
       this.index--;
-        //Kode hau liburuen array-a ezkerretara bukatzen denean, azkenengo liburura itzultzeko erabiltzen da
+      //Kode hau liburuen array-a ezkerretara bukatzen denean, azkenengo liburura itzultzeko erabiltzen da
       /*
     } else if (this.index === 0) {
       this.index = this.data.length - 1;
       */
     }
-      
+
     this.updateView();
   }
 }
