@@ -2,7 +2,7 @@ export class BookViewer {
     constructor(data, base) {
         this.base = base;
         this.search_base = 'https://openlibrary.org/search.json?isbn=';
-        this.data = data || [];  
+        this.data = data || [];
         this.index = 0;
 
         // Elements to display book data
@@ -14,13 +14,9 @@ export class BookViewer {
         this.liburuKopuru = document.querySelector("#liburuKopuru");
 
         this.initButtons();
-        //this.updateView(); 
-        // Test the data
-        console.log(this.data);
-
-
+        // Metodoa komentatu lehenengo iterazioan erabiltzen ez baita.
+        // this.updateView(); 
     }
-
 
     initButtons() {
         // aurrera, atzera eta bilatu botoiak hasieratu
@@ -30,9 +26,12 @@ export class BookViewer {
 
         // bilatu botoia sakatzean, erabiltzaileak sartu duen isbn-a duen liburua lortu
         // eta handleSearchData funtzioa exekutatu
-        aurrera.onclick = () => this.nextBook(); 
+        aurrera.onclick = () => this.nextBook();
         atzera.onclick = () => this.prevBook();
-        bilatu.onclick = () => this.handleSearchData();
+        bilatu.onclick = () => {
+            this.handleSearchData();
+          
+        };
     }
 
     extractBookData = (isbn) => {
@@ -40,8 +39,10 @@ export class BookViewer {
         return fetch(`${this.search_base}${isbn}`)
             .then(resp => resp.json())  // Convert the response to JSON
             .then(bookData => {
+                console.log(bookData);
+                
                 if (bookData.docs && bookData.docs.length > 0) {
-                    const book = bookData.docs[0];  // Use the first book found
+                    const book = bookData.docs[0];  
                     return {
                         title: book.title,
                         author: book.author_name ? book.author_name[0] : "Unknown Author",
@@ -62,52 +63,49 @@ export class BookViewer {
 
     addBookToData = (book, data) => {
         // data array-ean sartu liburua, eta liburu berriaren posizioa bueltatu
+        if (!book) return -1;  // FIXME: Gehitu `book` ez bada baliozkoa, -1 itzultzeko (segurtasuna gehitzeko).
         data.push(book);  // Add book to the data array
         return data.length - 1;  // Return the index of the newly added book
     };
 
     handleSearchData = () => {
         // lortu liburua data objektutik
-        const isbn = this.isbn.value.trim();  
+        const isbn = this.isbn.value.trim();
         if (isbn) {
             this.extractBookData(isbn).then(book => {
-                if (!this.data.some(b => b.isbn === book.isbn)) {
-                    // extractBookData eta addBookToData funtzioak erabili, indizea berria lortuz
-                    this.index = this.addBookToData(book, this.data);              
-                   
+                if (book) {
+                    if (!this.data.some(b => b.isbn === book.isbn)) {
+                        this.index = this.addBookToData(book, this.data);
+                    }
+                    this.updateView();
                 }
-                 // updateView funtzioa erabili, liburu berria bistaratzeko
-                 this.updateView();
             });
         } else {
             console.log("Sartu ISBN bat.");
         }
-        
     };
 
     updateView() {
         // liburuaren datu guztiak bistaratu
         if (this.data.length > 0 && this.data[this.index]) {
-
-            
             const currentBook = this.data[this.index];
+            
             console.log(currentBook);
-            console.log(this.index);
-           
-            this.irudia.src = currentBook.cover || "default-cover.jpg";
-            this.egilea.value = currentBook.author || "Ez da balioa topatu";
-            this.izenburua.value = currentBook.title || "Ez da balioa topatu";
-            this.dataElem.value = currentBook.publish_date || "Ez da balioa topatu";
-            this.isbn.value = currentBook.isbn || "Ez da balioa topatu";
+            
+            this.irudia.src = currentBook.filename ? `${this.base}${currentBook.filename}` : "default-cover.jpg";
+            this.egilea.value = currentBook.egilea;
+            this.izenburua.value = currentBook.izenburua;
+            this.dataElem.value = currentBook.data;
+            this.isbn.value = currentBook.isbn;
             this.liburuKopuru.innerHTML = this.data.length;
+            
         } else {
-            // Reset to empty values if no book data is available
-            this.irudia.src = "";
+            this.irudia.src = "";  
             this.egilea.value = "";
             this.izenburua.value = "";
             this.dataElem.value = "";
             this.isbn.value = "";
-            this.liburuKopuru.innerHTML = 0;
+            this.liburuKopuru.innerHTML = this.data.length;
         }
     }
 
@@ -115,28 +113,19 @@ export class BookViewer {
         // Hurrengo indizea lortu eta updateView funtzioa erabili bistaratzeko
         if (this.index < this.data.length - 1) {
             this.index++;
-            this.isbn.value = this.data[this.index].isbn;
-            //Programa arrayaren amaiera iristen bada index hasierara itzuli
-        }else if(this.index == this.data.length - 1){
+        } else if (this.index === this.data.length - 1) {
             this.index = 0;
         }
-        //Balioak eguneratu eta horiek pantailaratu 
-        this.handleSearchData();
-
+        this.updateView();
     }
 
     prevBook() {
         // Aurreko indizea lortu eta updateView funtzioa erabili bistaratzeko
         if (this.index > 0) {
             this.index--;
-         //Programa arrayaren hasierara iristen bada index bukaerara itzuli
-
-        }else if(this.index == 0){
-            this.index = this.data.length - 1;
-            
+        } else if (this.index === 0) {
+            this.index = this.data.length - 1;  
         }
-        this.isbn.value = this.data[this.index].isbn;
-        //Balioak eguneratu eta horiek pantailaratu 
-        this.handleSearchData();
+        this.updateView();
     }
 }
