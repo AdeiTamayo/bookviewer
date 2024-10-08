@@ -29,37 +29,73 @@ export class BookViewer {
     // eta handleSearchData funtzioa exekutatu
     aurrera.onclick = () => this.nextBook();
     atzera.onclick = () => this.prevBook();
-    bilatu.onclick = () => this.handleSearchData();
+    bilatu.onclick = () => {
+      let isbn = this.isbn.value.trim();
+      console.log("bilatu");
+      console.log("isbn " + isbn);
+      console.log("Helbidea " + this.search_base + isbn);
+      fetch(`${this.search_base}${isbn}`)
+        .then((resp) => resp.json())
+        .then((datos) => {
+          console.log(datos);
+          this.handleSearchData(datos);
+        
+
+        });
+    };
   }
 
-  extractBookData = (isbn) => {
+  extractBookData = (data) => {
     console.log("extractBookData");
     // json objektu egoki bat bueltatu, zure webgunean erabili ahal izateko
+
+    //Fetch ez da erabiltzen.
+    /*
     return fetch(`${this.search_base}${isbn}`)
       .then((resp) => resp.json())
       .then((bookData) => {
         console.log(bookData);
+        */
 
-        if (bookData.docs && bookData.docs.length > 0) {
-          const book = bookData.docs[0];
-          return {
-            izenburua: book.title,
-            egilea: book.author_name ? book.author_name[0] : "Unknown Author",
-            data: book.first_publish_year || "Unknown Date",
-            isbn: isbn,
-            filename: book.cover_i
-              ? `${book.cover_i}-M.jpg`
-              : "default-cover.jpg",
-          };
-        } else {
-          console.warn("No book data found for the given ISBN.");
-          return null;
+    let bookData = data;
+
+    if (bookData.docs && bookData.docs.length > 0) {
+      const book = bookData.docs[0];
+      return {
+        izenburua: book.title,
+        egilea: book.author_name ? book.author_name[0] : "Unknown Author",
+        data: book.first_publish_year || "Unknown Date",
+        isbn: book.isbn ? book.isbn[0] : "Unknown ISBN",
+        filename: book.cover_i ? `${book.cover_i}-M.jpg` : "default-cover.jpg",
+      };
+      
+    } else {
+      console.warn("No book data found for the given ISBN.");
+      return null;
+    }
+  };
+
+
+
+  handleSearchData = (data) => {
+    console.log("handleSearchData");
+    // lortu liburua data objektutik
+    //const isbn = this.isbn.value.trim();
+
+    if (data) {
+      let book = this.extractBookData(data);
+      console.log(book);
+        if (book) {
+          if (!this.data.some((b) => b.isbn === book.isbn)) {
+            this.index = this.addBookToData(book, this.data);
+          }
+          console.log("udpate view from method handleSearchData");
+          this.updateView(book);
+          
         }
-      })
-      .catch((error) => {
-        console.error("Error fetching book data:", error);
-        return null;
-      });
+    } else {
+      console.warn("Sartu ISBN bat.");
+    }
   };
 
   addBookToData = (book, data) => {
@@ -70,30 +106,13 @@ export class BookViewer {
     return data.length - 1;
   };
 
-  handleSearchData = () => {
-    console.log("handleSearchData");
-    // lortu liburua data objektutik
-    const isbn = this.isbn.value.trim();
-
-    if (isbn) {
-      this.extractBookData(isbn).then((book) => {
-        if (book) {
-          if (!this.data.some((b) => b.isbn === book.isbn)) {
-            this.index = this.addBookToData(book, this.data);
-          }
-          this.updateView();
-        }
-      });
-    } else {
-      console.warn("Sartu ISBN bat.");
-    }
-  };
-
-  updateView() {
+  //Oharra: Orrialdea lehenengo aldiz kargatzerakoan, libururik agertu ez dadin index = -1 jartzea okurritu zait baina horrela ez du test bat pasatzen.
+  updateView(book) {
     console.log("updateView");
     // liburuaren datu guztiak bistaratu
 
-    const currentBook = this.data[this.index];
+    //FIXME
+    const currentBook = book || this.data[this.index];
 
     console.log(currentBook);
 
