@@ -17,6 +17,8 @@ export class BookViewer {
     this.initButtons();
     // Metodoa komentatu lehenengo iterazioan erabiltzen ez baita.
     this.updateView();
+
+    
   }
 
   initButtons() {
@@ -47,7 +49,6 @@ export class BookViewer {
 
   extractBookData = (data) => {
     console.log("extractBookData");
-    // json objektu egoki bat bueltatu, zure webgunean erabili ahal izateko
 
     //Fetch ez da erabiltzen.
     /*
@@ -80,7 +81,6 @@ export class BookViewer {
   handleSearchData = (data) => {
     console.log("handleSearchData");
     // lortu liburua data objektutik
-    //const isbn = this.isbn.value.trim();
 
     if (data) {
       let book = this.extractBookData(data);
@@ -111,7 +111,6 @@ export class BookViewer {
     console.log("updateView");
     // liburuaren datu guztiak bistaratu
 
-    //FIXME
     const currentBook = book || this.data[this.index];
 
     console.log(currentBook);
